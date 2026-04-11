@@ -1,0 +1,55 @@
+Program        -> StatementList
+
+StatementList  -> Statement StatementList | ε
+
+Statement      -> Declaration ";"
+               | Assignment ";"
+               | Increment ";"
+               | Decrement ";"
+               | IfStatement
+               | WhileStatement
+               | DoWhileStatement
+               | ForStatement
+               | SwitchStatement
+
+Declaration    -> "int" Identifier
+
+Assignment     -> Identifier "=" Expression
+
+Increment     -> Identifier "++"
+
+Decrement     -> Identifier "--"
+
+IfStatement    -> "if" "(" Condition ")" Block "else" Block
+               | "if" "(" Condition ")" Block
+
+WhileStatement -> "while" "(" Condition ")" Block
+
+DoWhileStatement -> "do" Block "while" "(" Condition ")" ";"
+
+ForStatement   -> "for" "(" Assignment ";" Condition ";" Assignment ")" Block
+
+SwitchStatement -> "switch" "(" Expression ")" "{"
+                   CaseList
+                   DefaultClause
+                   "}"
+
+CaseList       -> Case CaseList | ε
+
+Case           -> "case" Number ":" StatementList
+
+DefaultClause  -> "default" ":" StatementList
+
+Block          -> "{" StatementList "}"
+
+Condition      -> Expression RelOp Expression
+
+RelOp          -> "==" | "!=" | ">" | "<" | ">=" | "<="
+
+Expression     -> Term (( "+" | "-" ) Term)*
+
+Term           -> Factor (( "*" | "/" ) Factor)*
+
+Factor         -> Identifier
+              | Number
+              | "(" Expression ")"
