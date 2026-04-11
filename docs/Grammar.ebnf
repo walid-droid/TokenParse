@@ -11,6 +11,7 @@ Statement      -> Declaration ";"
                | DoWhileStatement
                | ForStatement
                | SwitchStatement
+               | Block
 
 Declaration    -> "int" Identifier
 
@@ -20,36 +21,36 @@ Increment     -> Identifier "++"
 
 Decrement     -> Identifier "--"
 
-IfStatement    -> "if" "(" Condition ")" Block "else" Block
-               | "if" "(" Condition ")" Block
+IfStatement    -> "if" "(" Condition ")" Block
+               | "if" "(" Condition ")" Block "else" Block
 
 WhileStatement -> "while" "(" Condition ")" Block
 
 DoWhileStatement -> "do" Block "while" "(" Condition ")" ";"
 
-ForStatement   -> "for" "(" Assignment ";" Condition ";" Assignment ")" Block
+ForStatement    -> "for" "(" Assignment ";" Condition ";" Assignment ")" Block
 
 SwitchStatement -> "switch" "(" Expression ")" "{"
                    CaseList
                    DefaultClause
                    "}"
 
-CaseList       -> Case CaseList | ε
+CaseList        -> Case CaseList | ε
 
-Case           -> "case" Number ":" StatementList
+Case            -> "case" Number ":" StatementList
 
-DefaultClause  -> "default" ":" StatementList
+DefaultClause   -> "default" ":" StatementList
 
-Block          -> "{" StatementList "}"
+Block           -> "{" StatementList "}"
 
-Condition      -> Expression RelOp Expression
+Condition       -> Expression RelOp Expression
 
-RelOp          -> "==" | "!=" | ">" | "<" | ">=" | "<="
+RelOp           -> "==" | "!=" | ">" | "<" | ">=" | "<="
 
-Expression     -> Term (( "+" | "-" ) Term)*
+Expression      -> Term (( "+" | "-" ) Term)*
 
-Term           -> Factor (( "*" | "/" ) Factor)*
+Term            -> Factor (( "*" | "/" ) Factor)*
 
-Factor         -> Identifier
-              | Number
-              | "(" Expression ")"
+Factor          -> Identifier
+               | Number
+               | "(" Expression ")"

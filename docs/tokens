@@ -1,0 +1,42 @@
+-tokens:
+    a) mots cle
+        -int
+        -if
+        -else
+        -else if
+        -for
+        -do
+        -while
+        -switch
+        -case
+        -default
+        -break
+    b) identifieurs
+        - [a-zA-Z_][a-zA-Z0-9_]*
+    c)integer nombres
+        -[0-9]*
+    d)operateurs
+        - =
+        - ==
+        - !=
+        - >
+        - <
+        - >=
+        - <=
+        - +
+        - -
+        - *
+        - /
+        - ++
+        - --
+    e)separateurs
+        - ;
+        - ,
+        - (
+        - )
+        - {
+        - }
+        - :
+
+    Whitespace:
+    - spaces, tabs, newlines
