@@ -140,9 +140,9 @@ public class Parser {
         // optional else / elseif (you have ELSEIF token; we'll support both styles)
         while (peekType() == TokenType.ELSEIF) {
             advance(); // ELSEIF
-            expect(TokenType.LPAREN, "Expected '(' after elseif");
+            expect(TokenType.LPAREN, "Expected '(' after else if");
             parseExpression();
-            expect(TokenType.RPAREN, "Expected ')' after elseif condition");
+            expect(TokenType.RPAREN, "Expected ')' after else if condition");
             parseStatementOrBlock();
         }
 

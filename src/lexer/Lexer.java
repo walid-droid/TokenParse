@@ -18,19 +18,26 @@ public class Lexer {
 
     public List<Token> tokenize() {
         List<Token> tokens = new ArrayList<>();
-            while(currentChar() != '\0'){
+
+        while (currentChar() != '\0') {
+            SkipWhitSpace();
+
+            // keep skipping comments + whitespace
+            while (skipCommentIfAny()) {
                 SkipWhitSpace();
-                if(currentChar() == '\0'){
-                    break;
-                }
-                if (Character.isLetter(currentChar()) || currentChar() == '_') {
-                    tokens.add(readIdentifierOrKeyword());
-                } else if(Character.isDigit(currentChar()) || currentChar() == '_') {
-                    tokens.add(readNumber());
-                }else{
-                    tokens.add(readOperatorOrSeparator());
-                }
             }
+
+            if (currentChar() == '\0') break;
+
+            if (Character.isLetter(currentChar()) || currentChar() == '_') {
+                tokens.add(readIdentifierOrKeyword());
+            } else if (Character.isDigit(currentChar())) {
+                tokens.add(readNumber());
+            } else {
+                tokens.add(readOperatorOrSeparator());
+            }
+        }
+
         tokens.add(new Token(TokenType.EOF, "", line, column));
         return tokens;
     }
@@ -60,8 +67,9 @@ public class Lexer {
     }
     private Token readIdentifierOrKeyword() {
         int startColumn = column;
-        StringBuilder sb = new StringBuilder();
+        int startLine = line;
 
+        StringBuilder sb = new StringBuilder();
         while (Character.isLetterOrDigit(currentChar()) || currentChar() == '_') {
             sb.append(currentChar());
             advance();
@@ -69,18 +77,50 @@ public class Lexer {
 
         String text = sb.toString();
 
+        // Special case: "else if" => ELSEIF token
+        if ("else".equals(text)) {
+            // Save current lexer position (we are right after "else")
+            int savedPos = position;
+            int savedLine = line;
+            int savedCol = column;
+
+            // Skip whitespace between else and if
+            while (Character.isWhitespace(currentChar())) {
+                advance();
+            }
+
+            // Check if next identifier is "if"
+            if (Character.isLetter(currentChar()) || currentChar() == '_') {
+                StringBuilder sb2 = new StringBuilder();
+                while (Character.isLetterOrDigit(currentChar()) || currentChar() == '_') {
+                    sb2.append(currentChar());
+                    advance();
+                }
+
+                if ("if".contentEquals(sb2)) {
+                    return new Token(TokenType.ELSEIF, "else if", startLine, startColumn);
+                }
+            }
+
+            // Not "else if" => rollback, return ELSE only
+            position = savedPos;
+            line = savedLine;
+            column = savedCol;
+
+            return new Token(TokenType.ELSE, text, startLine, startColumn);
+        }
+
         return switch (text) {
-            case "int" -> new Token(TokenType.INT, text, line, startColumn);
-            case "if" -> new Token(TokenType.IF, text, line, startColumn);
-            case "else" -> new Token(TokenType.ELSE, text, line, startColumn);
-            case "while" -> new Token(TokenType.WHILE, text, line, startColumn);
-            case "for" -> new Token(TokenType.FOR, text, line, startColumn);
-            case "do" -> new Token(TokenType.DO, text, line, startColumn);
-            case "switch" -> new Token(TokenType.SWITCH, text, line, startColumn);
-            case "case" -> new Token(TokenType.CASE, text, line, startColumn);
-            case "default" -> new Token(TokenType.DEFAULT, text, line, startColumn);
-            case "break" -> new Token(TokenType.BREAK, text, line, startColumn);
-            default -> new Token(TokenType.IDENT, text, line, startColumn);
+            case "int" -> new Token(TokenType.INT, text, startLine, startColumn);
+            case "if" -> new Token(TokenType.IF, text, startLine, startColumn);
+            case "while" -> new Token(TokenType.WHILE, text, startLine, startColumn);
+            case "for" -> new Token(TokenType.FOR, text, startLine, startColumn);
+            case "do" -> new Token(TokenType.DO, text, startLine, startColumn);
+            case "switch" -> new Token(TokenType.SWITCH, text, startLine, startColumn);
+            case "case" -> new Token(TokenType.CASE, text, startLine, startColumn);
+            case "default" -> new Token(TokenType.DEFAULT, text, startLine, startColumn);
+            case "break" -> new Token(TokenType.BREAK, text, startLine, startColumn);
+            default -> new Token(TokenType.IDENT, text, startLine, startColumn);
         };
     }
     private Token readNumber() {
@@ -94,6 +134,42 @@ public class Lexer {
 
         return new Token(TokenType.NUMBER, sb.toString(), line, startColumn);
     }
+
+    private char peekNextChar() {
+        if (position + 1 >= input.length()) return '\0';
+        return input.charAt(position + 1);
+    }
+
+    // Skip //... or /*...*/ if present. Returns true if it skipped a comment.
+    private boolean skipCommentIfAny() {
+        if (currentChar() == '/' && peekNextChar() == '/') {
+            // single-line: consume until newline or EOF
+            advance(); // '/'
+            advance(); // '/'
+            while (currentChar() != '\n' && currentChar() != '\0') {
+                advance();
+            }
+            return true;
+        }
+
+        if (currentChar() == '/' && peekNextChar() == '*') {
+            // multi-line: consume until */
+            advance(); // '/'
+            advance(); // '*'
+            while (currentChar() != '\0') {
+                if (currentChar() == '*' && peekNextChar() == '/') {
+                    advance(); // '*'
+                    advance(); // '/'
+                    return true;
+                }
+                advance();
+            }
+            throw new RuntimeException("Unterminated block comment at " + line + ":" + column);
+        }
+
+        return false;
+    }
+
     private Token readOperatorOrSeparator() {
         int startColumn = column;
         char c = currentChar();

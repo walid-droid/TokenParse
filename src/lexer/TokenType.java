@@ -15,6 +15,9 @@ public enum TokenType {
 
     //SPECIAL
     EOF,
-    UNKNOWN
+    UNKNOWN,
+    CMNTSTART,
+    COMMENT
+
 
 }
